@@ -41,7 +41,11 @@ export default function CalculatorButton({
   return (
     <View style={[styles.wrapper, { flex }]}>
       <TouchableOpacity
-        style={[styles.button, { backgroundColor: colors.backgroundColor, borderColor: colors.borderColor }, style]}
+        style={[
+          styles.button,
+          { backgroundColor: colors.backgroundColor, borderColor: colors.borderColor },
+          style,
+        ]}
         onPress={onPress}
         activeOpacity={0.85}>
         <Text style={[styles.label, { color: colors.text }]}>{label}</Text>

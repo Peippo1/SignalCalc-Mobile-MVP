@@ -126,7 +126,7 @@ export default function useCalculator() {
     let result;
     try {
       // eslint-disable-next-line no-new-func
-      result = Function(`"use strict"; return (${jsExpression});`)();
+      result = Function(`\"use strict\"; return (${jsExpression});`)();
     } catch {
       setError('Error');
       return 'Error';

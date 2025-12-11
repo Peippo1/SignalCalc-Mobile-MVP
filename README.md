@@ -18,15 +18,16 @@ SignalCalc is a modern, keyboard-friendly calculator with memory keys, history, 
 
 ## Project structure
 ```
-App.js
+App.js                # Entry mounts CalculatorScreen
 src/
-  components/        # CalculatorButton and other UI pieces
+  components/        # CalculatorButton and related UI pieces
   logic/             # useCalculator hook (state, memory, history)
   screens/           # CalculatorScreen layout
   theme/             # Theme primitives (expandable)
 docs/
   finchworks-banner.png
-SignalCalcMobile/    # Original Expo app scaffold (router example)
+app/                 # Expo Router starter (unused for MVP)
+components/, hooks/  # Expo template helpers (icons, themed views)
 ```
 
 ## Prerequisites
@@ -46,7 +47,7 @@ Then open the QR code (Expo Go), press `i` for iOS simulator, `a` for Android, o
 - `npm run lint` – lint with Expo config
 
 ## Notes
-- Entry point is `App.js`, which mounts `src/screens/CalculatorScreen`. The legacy router starter lives in `SignalCalcMobile/app` if you want to reference it.
+- Entry point is `App.js`, which mounts `src/screens/CalculatorScreen`. The Expo Router starter in `app/` can be removed if unused.
 - History and memory are kept in-memory; persistence can be added via async storage if needed.
 
 ## License
