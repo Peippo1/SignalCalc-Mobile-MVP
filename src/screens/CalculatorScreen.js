@@ -210,11 +210,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: 16,
   },
   calculatorCard: {
-    flex: 2,
+    flex: 1,
     backgroundColor: '#0b1022',
     borderRadius: 18,
     borderWidth: 1,
@@ -281,13 +281,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   historyCard: {
-    flex: 1,
     backgroundColor: '#0b1022',
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#3b2f1a',
     padding: 14,
     gap: 12,
+    flexShrink: 0,
+    maxHeight: 220,
   },
   historyHeader: {
     flexDirection: 'row',
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   historyList: {
-    flex: 1,
+    maxHeight: 180,
   },
   historyItem: {
     marginBottom: 12,
