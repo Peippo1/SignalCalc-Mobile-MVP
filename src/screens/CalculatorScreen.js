@@ -1,4 +1,3 @@
-import * as Clipboard from 'expo-clipboard';
 import React, { useMemo, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -35,7 +34,8 @@ export default function CalculatorScreen() {
   const expressionPreview = useMemo(() => [...tokens, display].join(' '), [tokens, display]);
 
   const handleCopy = async () => {
-    await Clipboard.setStringAsync(error || display || '0');
+    const valueToCopy = error || display || '0';
+    console.log('[SignalCalcMobile] Copy disabled for now:', valueToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
