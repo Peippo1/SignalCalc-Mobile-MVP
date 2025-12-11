@@ -14,6 +14,8 @@ SignalCalc is a modern, keyboard-friendly calculator with memory keys, history, 
 - Memory keys: `MC`, `MR`, `M+`, `M-`, with live memory indicator
 - History of last 5 calculations with expression + result
 - Answer recall (`Ans`), percent, parentheses, sign toggle, and backspace support
+- Long-press backspace to clear entry, haptics on press, copy result to clipboard
+- Persists history/memory/ANS across sessions
 - Dark, card-based layout with accent buttons and status pill
 - Built on Expo Router / React Native with TypeScript-ready setup
 
@@ -91,7 +93,7 @@ Then open the QR code (Expo Go), press `i` for iOS simulator, `a` for Android, o
 - Macro buttons (programmable sequences)
 - Custom themes & premium layouts
 
-See the upcoming CHANGELOG.md for version tracking.
+See the full [CHANGELOG](CHANGELOG.md) for version tracking.
 
 ## Pro Tier (Planned)
 
@@ -130,4 +132,4 @@ The calculator uses a custom `useCalculator` hook which manages:
 - Both are kept in React state (future versions may persist them)
 
 ## License
-MIT
+MIT — see the full [LICENSE](LICENSE) file for details.

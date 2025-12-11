@@ -1,5 +1,6 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import React, { useMemo, useState } from 'react';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import CalculatorButton from '../components/CalculatorButton';
 import useCalculator from '../logic/useCalculator';
@@ -26,12 +27,30 @@ export default function CalculatorScreen() {
     memoryAdd,
     memorySubtract,
     appendParenthesis,
+    canEvaluate,
   } = useCalculator();
 
-  const expressionPreview = [...tokens, display].join(' ');
+  const [copied, setCopied] = useState(false);
+
+  const expressionPreview = useMemo(() => [...tokens, display].join(' '), [tokens, display]);
+
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(error || display || '0');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  };
 
   const renderButton = (label, onPress, variant = 'digit', extra = {}) => (
-    <CalculatorButton key={label} label={label} onPress={onPress} variant={variant} {...extra} />
+    <CalculatorButton
+      key={label}
+      label={label}
+      onPress={onPress}
+      onLongPress={extra.onLongPress}
+      accessibilityLabel={extra.accessibilityLabel}
+      disabled={extra.disabled}
+      variant={variant}
+      {...extra}
+    />
   );
 
   const rows = [
@@ -43,7 +62,7 @@ export default function CalculatorScreen() {
     ],
     [
       renderButton('C', clearAll, 'action'),
-      renderButton('⌫', backspace, 'action'),
+      renderButton('⌫', backspace, 'action', { onLongPress: clear }),
       renderButton('(', () => appendParenthesis('('), 'ghost'),
       renderButton(')', () => appendParenthesis(')'), 'ghost'),
     ],
@@ -74,7 +93,7 @@ export default function CalculatorScreen() {
     [
       renderButton('Ans', recallAnswer, 'operator'),
       renderButton('%', percent, 'action'),
-      renderButton('=', performOperation, 'action', { flex: 2 }),
+      renderButton('=', performOperation, 'action', { flex: 2, disabled: !canEvaluate }),
     ],
   ];
 
@@ -106,6 +125,9 @@ export default function CalculatorScreen() {
               <Text style={styles.result} numberOfLines={1} adjustsFontSizeToFit>
                 {error || display}
               </Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Copy result" onPress={handleCopy} style={styles.copyPill}>
+                <Text style={styles.copyText}>{copied ? 'Copied' : 'Copy'}</Text>
+              </Pressable>
             </View>
             <View style={styles.displayMeta}>
               <Text style={styles.metaLabel}>Memory</Text>
@@ -219,6 +241,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textAlign: 'right',
     flex: 1,
+  },
+  copyPill: {
+    marginLeft: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#374268',
+    backgroundColor: '#0b1224',
+  },
+  copyText: {
+    color: '#cfd4e6',
+    fontSize: 12,
+    fontWeight: '600',
   },
   displayMeta: {
     flexDirection: 'row',

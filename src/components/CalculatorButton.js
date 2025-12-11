@@ -1,5 +1,6 @@
+import * as Haptics from 'expo-haptics';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 const variantStyles = {
   digit: {
@@ -32,24 +33,46 @@ const variantStyles = {
 export default function CalculatorButton({
   label,
   onPress,
+  onLongPress,
   variant = 'digit',
   style,
   flex = 1,
+  disabled = false,
+  accessibilityLabel,
 }) {
   const colors = variantStyles[variant] ?? variantStyles.digit;
 
+  const handlePress = () => {
+    if (disabled) return;
+    Haptics.selectionAsync().catch(() => undefined);
+    onPress?.();
+  };
+
+  const handleLongPress = () => {
+    if (disabled) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+    onLongPress?.();
+  };
+
   return (
     <View style={[styles.wrapper, { flex }]}>
-      <TouchableOpacity
-        style={[
+      <Pressable
+        accessibilityLabel={accessibilityLabel || `Calculator button ${label}`}
+        accessibilityRole="button"
+        disabled={disabled}
+        onPress={handlePress}
+        onLongPress={handleLongPress}
+        style={({ pressed }) => [
           styles.button,
-          { backgroundColor: colors.backgroundColor, borderColor: colors.borderColor },
+          {
+            backgroundColor: colors.backgroundColor,
+            borderColor: colors.borderColor,
+            opacity: disabled ? 0.55 : pressed ? 0.85 : 1,
+          },
           style,
-        ]}
-        onPress={onPress}
-        activeOpacity={0.85}>
+        ]}>
         <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }

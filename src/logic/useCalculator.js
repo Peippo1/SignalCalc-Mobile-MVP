@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useMemo, useState } from 'react';
 
 const MAX_HISTORY = 5;
 
@@ -27,6 +28,40 @@ export default function useCalculator() {
   const [memory, setMemory] = useState(null);
   const [lastResult, setLastResult] = useState(null);
   const [error, setError] = useState('');
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const loadPersisted = async () => {
+      try {
+        const raw = await AsyncStorage.getItem('@signalcalc/state');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        setCurrentInput(parsed.currentInput ?? '0');
+        setTokens(parsed.tokens ?? []);
+        setHistory(parsed.history ?? []);
+        setMemory(parsed.memory ?? null);
+        setLastResult(parsed.lastResult ?? null);
+      } catch (err) {
+        console.warn('Failed to load calculator state', err);
+      } finally {
+        setHydrated(true);
+      }
+    };
+    loadPersisted();
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const persist = async () => {
+      try {
+        const payload = JSON.stringify({ currentInput, tokens, history, memory, lastResult });
+        await AsyncStorage.setItem('@signalcalc/state', payload);
+      } catch (err) {
+        console.warn('Failed to persist calculator state', err);
+      }
+    };
+    persist();
+  }, [currentInput, tokens, history, memory, lastResult, hydrated]);
 
   const resetError = () => setError('');
 
@@ -175,6 +210,14 @@ export default function useCalculator() {
       memory,
       lastResult,
       error,
+      hydrated,
+      canEvaluate: (() => {
+        if (error) return false;
+        const lastToken = tokens[tokens.length - 1];
+        if (lastToken && isOperator(lastToken)) return false;
+        if (!tokens.length && (!currentInput || currentInput === '')) return false;
+        return true;
+      })(),
       appendDigit,
       clear,
       clearAll,
