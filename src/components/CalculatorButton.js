@@ -58,7 +58,7 @@ export default function CalculatorButton({
   };
 
   return (
-    <View style={[styles.wrapper, { flex, padding: margin }]}>
+    <View style={[styles.wrapper, { flex, paddingHorizontal: margin, paddingVertical: margin * 0.5 }]}>
       <Pressable
         accessibilityLabel={accessibilityLabel || `Calculator button ${label}`}
         accessibilityRole="button"
@@ -72,6 +72,7 @@ export default function CalculatorButton({
             borderColor: colors.borderColor,
             opacity: disabled ? 0.55 : pressed ? 0.85 : 1,
             borderRadius: size ? Math.max(10, size * 0.24) : 14,
+            minHeight: size ? Math.max(40, size * 0.75) : 46,
           },
           style,
         ]}
@@ -88,10 +89,11 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   button: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    aspectRatio: 1,           // keeps square buttons that scale
-    width: '100%',            // fill available column width
     borderWidth: 1,
     shadowColor: '#0b1022',
     shadowOpacity: 0.4,

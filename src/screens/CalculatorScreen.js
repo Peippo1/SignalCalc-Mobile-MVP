@@ -43,7 +43,9 @@ export default function CalculatorScreen() {
   const resultSize = Math.round(44 * layoutScale);
 
   // Spacing
-  const containerPad = Math.round(16 * layoutScale);
+  const containerPadH = Math.round(16 * layoutScale);
+  const containerPadTop = Math.round(16 * layoutScale);
+  const containerPadBottom = Math.max(6, Math.round(10 * layoutScale));
   const cardPad = Math.round(14 * layoutScale);
   const cardGap = Math.max(8, Math.round(12 * layoutScale));
   const padGap = Math.max(4, Math.round(8 * layoutScale));
@@ -63,7 +65,10 @@ export default function CalculatorScreen() {
 
   const sideHistoryWidth = Math.min(width * 0.38, 360);
   const contentWidth = Math.max(
-    paddedWidth - containerPad * 2 - cardPad * 2 - (isLandscape && isHistoryOpen ? sideHistoryWidth + cardGap : 0),
+    paddedWidth -
+      containerPadH * 2 -
+      cardPad * 2 -
+      (isLandscape && isHistoryOpen ? sideHistoryWidth + cardGap : 0),
     240,
   );
   const padWidth = contentWidth * layoutScale;
@@ -73,7 +78,7 @@ export default function CalculatorScreen() {
   const metaSize = Math.max(12, Math.round(14 * layoutScale));
   const historyMaxHeight = Math.max(140, Math.round(height * 0.28 * layoutScale));
   const historyPad = Math.max(10, Math.round(12 * layoutScale));
-  const buttonSize = Math.max(44, (padWidth - padGap * 3) / 4);
+  const buttonSize = Math.max(42, (padWidth - padGap * 3) / 4);
 
   const expressionPreview = useMemo(() => [...tokens, display].join(' '), [tokens, display]);
 
@@ -186,7 +191,7 @@ export default function CalculatorScreen() {
   const keypad = (
     <View style={[styles.pad, { gap: padGap }]}>
       {rows.map((row, idx) => (
-        <View key={`row-${idx}`} style={[styles.row, { width: padWidth, gap: padGap }]}>
+        <View key={`row-${idx}`} style={[styles.row, { gap: padGap }]}>
           {row}
         </View>
       ))}
@@ -197,7 +202,10 @@ export default function CalculatorScreen() {
     if (!isHistoryOpen) return null;
     const side = position === 'side';
     const spacing = Math.max(6, Math.round(8 * layoutScale));
-    const sideListMaxHeight = Math.max(historyMaxHeight, height - containerPad * 2 - headerSpacing * 3);
+    const sideListMaxHeight = Math.max(
+      historyMaxHeight,
+      height - containerPadTop - containerPadBottom - headerSpacing * 3,
+    );
 
     return (
       <View
@@ -270,7 +278,12 @@ export default function CalculatorScreen() {
   ) : null;
 
   return (
-    <SafeAreaView style={[styles.container, { padding: containerPad }]}> 
+    <SafeAreaView
+      style={[
+        styles.container,
+        { paddingTop: containerPadTop, paddingHorizontal: containerPadH, paddingBottom: containerPadBottom },
+      ]}
+    > 
       <View style={[styles.header, { marginBottom: headerSpacing }]}>
         <View style={styles.headerLeft}>
           <Text style={[styles.kicker, { fontSize: kickerSize }]}>Accessible Calculator</Text>
@@ -458,14 +471,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   pad: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
+    alignItems: 'stretch',
+    flex: 1,
   },
 
   historyCardInline: {
