@@ -51,6 +51,9 @@ export default function CalculatorScreen() {
   const padGap = Math.max(4, Math.round(8 * layoutScale));
   const headerSpacing = Math.max(10, Math.round(14 * layoutScale));
 
+  // Extra breathing room inside the keypad so the bottom row never kisses/overflows the card border.
+  const padBottomInset = Math.max(10, Math.round(14 * layoutScale));
+
   // Button chrome / header buttons
   const headerButtonHPad = Math.max(10, Math.round(12 * layoutScale));
   const headerButtonVPad = Math.max(6, Math.round(8 * layoutScale));
@@ -78,7 +81,29 @@ export default function CalculatorScreen() {
   const metaSize = Math.max(12, Math.round(14 * layoutScale));
   const historyMaxHeight = Math.max(140, Math.round(height * 0.28 * layoutScale));
   const historyPad = Math.max(10, Math.round(12 * layoutScale));
-  const buttonSize = Math.max(42, (padWidth - padGap * 3) / 4);
+
+  const rowsCount = 7;
+
+  const widthBoundButtonSize = Math.max(42, (padWidth - padGap * 3) / 4);
+
+  // Approximate how much vertical space is left for the keypad after header + display.
+  // We keep this conservative so buttons shrink on smaller phones rather than overflowing the card.
+  const estimatedHeaderHeight = kickerSize + titleSize + subtitleSize * 3 + headerSpacing + 34;
+  const estimatedDisplayHeight = resultSize * 1.6 + displayPad * 2 + displayGap * 3 + metaSize * 2 + 40;
+  const estimatedNonKeypadHeight =
+    containerPadTop +
+    containerPadBottom +
+    cardPad * 2 +
+    cardGap * 2 +
+    estimatedHeaderHeight +
+    estimatedDisplayHeight +
+    // Leave breathing room for the home indicator / bottom inset.
+    18;
+
+  const availableKeypadHeight = Math.max(220, height - estimatedNonKeypadHeight);
+  const heightBoundButtonSize = (availableKeypadHeight - padGap * (rowsCount - 1)) / rowsCount;
+
+  const buttonSize = clamp(Math.min(widthBoundButtonSize, heightBoundButtonSize), 38, 76);
 
   const expressionPreview = useMemo(() => [...tokens, display].join(' '), [tokens, display]);
 
@@ -189,7 +214,7 @@ export default function CalculatorScreen() {
   );
 
   const keypad = (
-    <View style={[styles.pad, { gap: padGap }]}>
+    <View style={[styles.pad, { gap: padGap, paddingBottom: padBottomInset }]}>
       {rows.map((row, idx) => (
         <View key={`row-${idx}`} style={[styles.row, { gap: padGap }]}>
           {row}
@@ -279,11 +304,14 @@ export default function CalculatorScreen() {
 
   return (
     <SafeAreaView
+      // Keep safe-area protection on top/left/right, but let the UI extend to the bottom
+      // so the calculator card can use the full vertical space on devices with a home indicator.
+      edges={['top', 'left', 'right']}
       style={[
         styles.container,
         { paddingTop: containerPadTop, paddingHorizontal: containerPadH, paddingBottom: containerPadBottom },
       ]}
-    > 
+    >
       <View style={[styles.header, { marginBottom: headerSpacing }]}>
         <View style={styles.headerLeft}>
           <Text style={[styles.kicker, { fontSize: kickerSize }]}>Accessible Calculator</Text>
@@ -357,7 +385,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#050816',
-    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',
@@ -407,6 +434,8 @@ const styles = StyleSheet.create({
 
   calculatorCard: {
     flex: 1,
+    flexGrow: 1,
+    minHeight: 0,
     backgroundColor: '#0b1022',
     borderRadius: 18,
     borderWidth: 1,
@@ -472,13 +501,16 @@ const styles = StyleSheet.create({
   },
   pad: {
     flex: 1,
+    paddingTop: 2,
+    // Distribute any extra vertical space between rows so buttons don't bunch up.
     justifyContent: 'space-between',
     alignItems: 'stretch',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    flex: 1,
+    // Let the row size to its contents; the keypad container will distribute extra height.
+    flexShrink: 0,
   },
 
   historyCardInline: {
