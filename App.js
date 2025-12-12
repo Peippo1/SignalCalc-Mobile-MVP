@@ -6,7 +6,7 @@ import CalculatorScreen from './src/screens/CalculatorScreen';
 export default function App() {
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
         <StatusBar barStyle="light-content" />
         <CalculatorScreen />
       </SafeAreaView>

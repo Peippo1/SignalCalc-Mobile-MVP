@@ -36,6 +36,9 @@ export default function CalculatorButton({
   onLongPress,
   variant = 'digit',
   style,
+  size,
+  labelSize,
+  margin = 6,
   flex = 1,
   disabled = false,
   accessibilityLabel,
@@ -55,7 +58,7 @@ export default function CalculatorButton({
   };
 
   return (
-    <View style={[styles.wrapper, { flex }]}>
+    <View style={[styles.wrapper, { flex, padding: margin }]}>
       <Pressable
         accessibilityLabel={accessibilityLabel || `Calculator button ${label}`}
         accessibilityRole="button"
@@ -68,10 +71,12 @@ export default function CalculatorButton({
             backgroundColor: colors.backgroundColor,
             borderColor: colors.borderColor,
             opacity: disabled ? 0.55 : pressed ? 0.85 : 1,
+            borderRadius: size ? Math.max(10, size * 0.24) : 14,
           },
           style,
-        ]}>
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        ]}
+      >
+        <Text style={[styles.label, { color: colors.text, fontSize: labelSize ?? 16 }]}>{label}</Text>
       </Pressable>
     </View>
   );
@@ -83,8 +88,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   button: {
-    margin: 6,
-    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     aspectRatio: 1,           // keeps square buttons that scale

@@ -11,7 +11,6 @@ export default function CalculatorScreen() {
     tokens,
     history,
     memory,
-    lastResult,
     error,
     appendDigit,
     clear,
@@ -33,29 +32,48 @@ export default function CalculatorScreen() {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
-  // Compact mode kicks in on smaller phones / short viewports.
-  const compact = height < 760;
-  const tight = height < 700;
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const layoutScale = clamp(height / 900, 0.82, 1);
+  const paddedWidth = Math.max(width - 32, 280);
 
   // Header / typography sizing.
-  const titleSize = tight ? 22 : compact ? 24 : 28;
-  const subtitleSize = tight ? 11 : compact ? 12 : 14;
-  const kickerSize = tight ? 10 : 12;
-  const resultSize = tight ? 34 : compact ? 38 : 44;
+  const titleSize = Math.round(28 * layoutScale);
+  const subtitleSize = Math.max(11, Math.round(14 * layoutScale));
+  const kickerSize = Math.round(12 * layoutScale);
+  const resultSize = Math.round(44 * layoutScale);
 
   // Spacing
-  const containerPad = tight ? 10 : compact ? 12 : 16;
-  const cardPad = tight ? 10 : compact ? 12 : 14;
-  const cardGap = tight ? 8 : compact ? 10 : 12;
-  const padGap = tight ? 4 : compact ? 6 : 8;
+  const containerPad = Math.round(16 * layoutScale);
+  const cardPad = Math.round(14 * layoutScale);
+  const cardGap = Math.max(8, Math.round(12 * layoutScale));
+  const padGap = Math.max(4, Math.round(8 * layoutScale));
+  const headerSpacing = Math.max(10, Math.round(14 * layoutScale));
 
   // Button chrome / header buttons
-  const headerButtonHPad = tight ? 10 : 12;
-  const headerButtonVPad = tight ? 6 : 8;
+  const headerButtonHPad = Math.max(10, Math.round(12 * layoutScale));
+  const headerButtonVPad = Math.max(6, Math.round(8 * layoutScale));
+  const headerButtonRadius = Math.max(12, Math.round(14 * layoutScale));
+
+  const buttonMargin = Math.max(3, Math.round(6 * layoutScale));
+  const buttonLabelSize = Math.max(13, Math.round(16 * layoutScale));
 
   const [copied, setCopied] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [showTheme, setShowTheme] = useState(false);
+
+  const sideHistoryWidth = Math.min(width * 0.38, 360);
+  const contentWidth = Math.max(
+    paddedWidth - containerPad * 2 - cardPad * 2 - (isLandscape && isHistoryOpen ? sideHistoryWidth + cardGap : 0),
+    240,
+  );
+  const padWidth = contentWidth * layoutScale;
+
+  const displayPad = Math.max(10, Math.round(14 * layoutScale));
+  const displayGap = Math.max(6, Math.round(8 * layoutScale));
+  const metaSize = Math.max(12, Math.round(14 * layoutScale));
+  const historyMaxHeight = Math.max(140, Math.round(height * 0.28 * layoutScale));
+  const historyPad = Math.max(10, Math.round(12 * layoutScale));
+  const buttonSize = Math.max(44, (padWidth - padGap * 3) / 4);
 
   const expressionPreview = useMemo(() => [...tokens, display].join(' '), [tokens, display]);
 
@@ -75,6 +93,9 @@ export default function CalculatorScreen() {
       accessibilityLabel={extra.accessibilityLabel}
       disabled={extra.disabled}
       variant={variant}
+      margin={buttonMargin}
+      labelSize={buttonLabelSize}
+      size={buttonSize}
       {...extra}
     />
   );
@@ -123,9 +144,134 @@ export default function CalculatorScreen() {
     ],
   ];
 
+  const displaySection = (
+    <View style={[styles.displayCard, { padding: displayPad, gap: displayGap }]}>
+      <View style={styles.displayMeta}>
+        <Text style={[styles.metaLabel, { fontSize: metaSize }]}>≈</Text>
+        <Text style={[styles.metaValue, { fontSize: metaSize }]} numberOfLines={1} adjustsFontSizeToFit>
+          {expressionPreview || '0'}
+        </Text>
+      </View>
+
+      <View style={styles.displayRow}>
+        <Text style={[styles.result, { fontSize: resultSize }]} numberOfLines={1} adjustsFontSizeToFit>
+          {error || display}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Copy result"
+          onPress={handleCopy}
+          style={[
+            styles.copyPill,
+            {
+              paddingHorizontal: Math.max(8, Math.round(10 * layoutScale)),
+              paddingVertical: Math.max(5, Math.round(6 * layoutScale)),
+              borderRadius: Math.max(10, Math.round(12 * layoutScale)),
+            },
+          ]}
+        >
+          <Text style={[styles.copyText, { fontSize: Math.max(11, Math.round(12 * layoutScale)) }]}>
+            {copied ? 'Copied' : 'Copy'}
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.displayMeta}>
+        <Text style={[styles.metaLabel, { fontSize: metaSize }]}>Memory</Text>
+        <Text style={[styles.metaValue, { fontSize: metaSize }]}>{memory == null ? '—' : memory}</Text>
+      </View>
+    </View>
+  );
+
+  const keypad = (
+    <View style={[styles.pad, { gap: padGap }]}>
+      {rows.map((row, idx) => (
+        <View key={`row-${idx}`} style={[styles.row, { width: padWidth, gap: padGap }]}>
+          {row}
+        </View>
+      ))}
+    </View>
+  );
+
+  const renderHistoryPanel = (position = 'below') => {
+    if (!isHistoryOpen) return null;
+    const side = position === 'side';
+    const spacing = Math.max(6, Math.round(8 * layoutScale));
+    const sideListMaxHeight = Math.max(historyMaxHeight, height - containerPad * 2 - headerSpacing * 3);
+
+    return (
+      <View
+        style={[
+          styles.historyCardInline,
+          side ? styles.historySide : styles.historyPortrait,
+          {
+            padding: historyPad,
+            gap: spacing,
+            width: side ? sideHistoryWidth : '100%',
+            maxHeight: side ? undefined : historyMaxHeight,
+          },
+        ]}
+      >
+        <View style={styles.historyHeader}>
+          <Text style={[styles.historyTitle, { fontSize: Math.round(20 * layoutScale) }]}>History</Text>
+          <Text style={[styles.historySubtitle, { fontSize: Math.max(11, Math.round(12 * layoutScale)) }]}>
+            Last 5 calculations
+          </Text>
+        </View>
+
+        <ScrollView
+          style={[
+            styles.historyList,
+            side ? { maxHeight: sideListMaxHeight } : { maxHeight: historyMaxHeight },
+          ]}
+          contentContainerStyle={styles.historyListContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {history.length === 0 && (
+            <Text style={[styles.historyEmpty, { fontSize: Math.max(13, Math.round(14 * layoutScale)) }]}>
+              No history yet
+            </Text>
+          )}
+          {history.map((item, index) => (
+            <View key={`${item.expression}-${index}`} style={[styles.historyItem, { marginBottom: spacing }]}>
+              <Text style={[styles.historyExpression, { fontSize: Math.max(13, Math.round(14 * layoutScale)) }]} numberOfLines={1}>
+                {index + 1}. {item.expression}
+              </Text>
+              <Text style={[styles.historyResult, { fontSize: Math.max(12, Math.round(13 * layoutScale)) }]}>
+                = {item.result}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const themeCard = showTheme ? (
+    <View
+      style={[
+        styles.themeCardInline,
+        {
+          padding: historyPad,
+          gap: Math.max(6, Math.round(8 * layoutScale)),
+        },
+      ]}
+    >
+      <View style={styles.historyHeader}>
+        <Text style={[styles.historyTitle, { fontSize: Math.round(20 * layoutScale) }]}>Theme</Text>
+        <Text style={[styles.historySubtitle, { fontSize: Math.max(11, Math.round(12 * layoutScale)) }]}>
+          Coming soon
+        </Text>
+      </View>
+      <Text style={[styles.themeHint, { fontSize: Math.max(12, Math.round(13 * layoutScale)) }]}>
+        We’ll add selectable themes here (and persist your choice).
+      </Text>
+    </View>
+  ) : null;
+
   return (
     <SafeAreaView style={[styles.container, { padding: containerPad }]}> 
-      <View style={styles.header}>
+      <View style={[styles.header, { marginBottom: headerSpacing }]}>
         <View style={styles.headerLeft}>
           <Text style={[styles.kicker, { fontSize: kickerSize }]}>Accessible Calculator</Text>
           <Text style={[styles.title, { fontSize: titleSize }]}>Signal Calculator</Text>
@@ -137,11 +283,15 @@ export default function CalculatorScreen() {
         <View style={styles.headerActions}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={showHistory ? 'Hide history' : 'Show history'}
-            onPress={() => setShowHistory((v) => !v)}
+            accessibilityLabel={isHistoryOpen ? 'Hide history' : 'Show history'}
+            onPress={() => setIsHistoryOpen((v) => !v)}
             style={({ pressed }) => [
               styles.headerButton,
-              { paddingHorizontal: headerButtonHPad, paddingVertical: headerButtonVPad },
+              {
+                paddingHorizontal: headerButtonHPad,
+                paddingVertical: headerButtonVPad,
+                borderRadius: headerButtonRadius,
+              },
               pressed && styles.headerButtonPressed,
             ]}
           >
@@ -154,7 +304,11 @@ export default function CalculatorScreen() {
             onPress={() => setShowTheme((v) => !v)}
             style={({ pressed }) => [
               styles.headerButton,
-              { paddingHorizontal: headerButtonHPad, paddingVertical: headerButtonVPad },
+              {
+                paddingHorizontal: headerButtonHPad,
+                paddingVertical: headerButtonVPad,
+                borderRadius: headerButtonRadius,
+              },
               pressed && styles.headerButtonPressed,
             ]}
           >
@@ -164,80 +318,23 @@ export default function CalculatorScreen() {
       </View>
 
       <View style={[styles.calculatorCard, { padding: cardPad, gap: cardGap }]}> 
-        <View style={[styles.displayCard, { padding: tight ? 10 : compact ? 12 : 14 }]}>
-          <View style={styles.displayMeta}>
-            <Text style={styles.metaLabel}>≈</Text>
-            <Text style={styles.metaValue} numberOfLines={1} adjustsFontSizeToFit>
-              {expressionPreview || '0'}
-            </Text>
-          </View>
-
-          <View style={styles.displayRow}>
-            <Text style={[styles.result, { fontSize: resultSize }]} numberOfLines={1} adjustsFontSizeToFit>
-              {error || display}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Copy result"
-              onPress={handleCopy}
-              style={styles.copyPill}
-            >
-              <Text style={styles.copyText}>{copied ? 'Copied' : 'Copy'}</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.displayMeta}>
-            <Text style={styles.metaLabel}>Memory</Text>
-            <Text style={styles.metaValue}>{memory == null ? '—' : memory}</Text>
-          </View>
-        </View>
-
-        <View style={[styles.pad, { gap: padGap }]}>
-          {rows.map((row, idx) => (
-            <View key={`row-${idx}`} style={styles.row}>
-              {row}
+        {isLandscape ? (
+          <View style={[styles.landscapeLayout, { gap: cardGap }]}>
+            <View style={[styles.mainColumn, { gap: cardGap }]}>
+              {displaySection}
+              {keypad}
+              {themeCard}
             </View>
-          ))}
-        </View>
-
-        {showHistory && (
-          <View style={styles.historyCardInline}>
-            <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>History</Text>
-              <Text style={styles.historySubtitle}>Last 5 calculations</Text>
-            </View>
-
-            <ScrollView
-              style={styles.historyList}
-              contentContainerStyle={styles.historyListContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {history.length === 0 && <Text style={styles.historyEmpty}>No history yet</Text>}
-              {history.map((item, index) => (
-                <View key={`${item.expression}-${index}`} style={styles.historyItem}>
-                  <Text style={styles.historyExpression} numberOfLines={1}>
-                    {index + 1}. {item.expression}
-                  </Text>
-                  <Text style={styles.historyResult}>= {item.result}</Text>
-                </View>
-              ))}
-            </ScrollView>
+            {renderHistoryPanel('side')}
+          </View>
+        ) : (
+          <View style={{ flex: 1, gap: cardGap }}>
+            {displaySection}
+            {keypad}
+            {renderHistoryPanel('below')}
+            {themeCard}
           </View>
         )}
-
-        {showTheme && (
-          <View style={styles.themeCardInline}>
-            <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>Theme</Text>
-              <Text style={styles.historySubtitle}>Coming soon</Text>
-            </View>
-            <Text style={styles.themeHint}>
-              We’ll add selectable themes here (and persist your choice).
-            </Text>
-          </View>
-        )}
-
-        {(showHistory || showTheme) && <View style={{ height: compact ? 8 : 12 }} />}
       </View>
     </SafeAreaView>
   );
@@ -301,7 +398,14 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#232c4a',
-    // padding and gap are injected dynamically for compact mode
+  },
+  landscapeLayout: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  mainColumn: {
+    flex: 1,
   },
   displayCard: {
     backgroundColor: '#0f162b',
@@ -356,10 +460,12 @@ const styles = StyleSheet.create({
   pad: {
     flexGrow: 1,
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'center',
   },
 
   historyCardInline: {
@@ -369,7 +475,6 @@ const styles = StyleSheet.create({
     borderColor: '#3b2f1a',
     padding: 12,
     gap: 8,
-    marginTop: 12,
   },
   themeCardInline: {
     backgroundColor: '#0b1022',
@@ -378,7 +483,12 @@ const styles = StyleSheet.create({
     borderColor: '#232c4a',
     padding: 12,
     gap: 8,
-    marginTop: 12,
+  },
+  historyPortrait: {
+    alignSelf: 'stretch',
+  },
+  historySide: {
+    alignSelf: 'stretch',
   },
   themeHint: {
     color: '#cfd4e6',
