@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import CalculatorButton from '../components/CalculatorButton';
 import useCalculator from '../logic/useCalculator';
@@ -31,6 +31,8 @@ export default function CalculatorScreen() {
 
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
+  const insets = useSafeAreaInsets();
+  const safeBottomInset = insets?.bottom ?? 0;
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const layoutScale = clamp(height / 900, 0.82, 1);
@@ -45,14 +47,16 @@ export default function CalculatorScreen() {
   // Spacing
   const containerPadH = Math.round(16 * layoutScale);
   const containerPadTop = Math.round(16 * layoutScale);
-  const containerPadBottom = Math.max(6, Math.round(10 * layoutScale));
+  // Ensure we always reserve enough space for the iOS home indicator / bottom safe area.
+  const containerPadBottom = Math.max(6, Math.round(10 * layoutScale), safeBottomInset);
   const cardPad = Math.round(14 * layoutScale);
   const cardGap = Math.max(8, Math.round(12 * layoutScale));
   const padGap = Math.max(4, Math.round(8 * layoutScale));
   const headerSpacing = Math.max(10, Math.round(14 * layoutScale));
 
-  // Extra breathing room inside the keypad so the bottom row never kisses/overflows the card border.
-  const padBottomInset = Math.max(10, Math.round(14 * layoutScale));
+  // Extra breathing room inside the keypad so the bottom row stays inside the calculator card.
+  // SafeAreaView already applies the bottom inset, so we do NOT add `safeBottomInset` here.
+  const padBottomInset = Math.max(8, Math.round(10 * layoutScale));
 
   // Button chrome / header buttons
   const headerButtonHPad = Math.max(10, Math.round(12 * layoutScale));
@@ -98,7 +102,7 @@ export default function CalculatorScreen() {
     estimatedHeaderHeight +
     estimatedDisplayHeight +
     // Leave breathing room for the home indicator / bottom inset.
-    18;
+    18 + safeBottomInset;
 
   const availableKeypadHeight = Math.max(220, height - estimatedNonKeypadHeight);
   const heightBoundButtonSize = (availableKeypadHeight - padGap * (rowsCount - 1)) / rowsCount;
@@ -214,7 +218,7 @@ export default function CalculatorScreen() {
   );
 
   const keypad = (
-    <View style={[styles.pad, { gap: padGap, paddingBottom: padBottomInset }]}>
+    <View style={[styles.pad, { gap: padGap, paddingTop: 2, paddingBottom: padBottomInset }]}>
       {rows.map((row, idx) => (
         <View key={`row-${idx}`} style={[styles.row, { gap: padGap }]}>
           {row}
@@ -304,12 +308,16 @@ export default function CalculatorScreen() {
 
   return (
     <SafeAreaView
-      // Keep safe-area protection on top/left/right, but let the UI extend to the bottom
-      // so the calculator card can use the full vertical space on devices with a home indicator.
-      edges={['top', 'left', 'right']}
+      // Now keep safe-area protection on all edges including bottom.
+      edges={['top', 'left', 'right', 'bottom']}
       style={[
         styles.container,
-        { paddingTop: containerPadTop, paddingHorizontal: containerPadH, paddingBottom: containerPadBottom },
+        {
+          paddingTop: containerPadTop,
+          paddingHorizontal: containerPadH,
+          // SafeAreaView now applies the bottom inset; we only add a small extra cushion.
+          paddingBottom: Math.max(6, Math.round(10 * layoutScale)),
+        },
       ]}
     >
       <View style={[styles.header, { marginBottom: headerSpacing }]}>
