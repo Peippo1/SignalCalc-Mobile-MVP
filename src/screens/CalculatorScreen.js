@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CalculatorButton from '../components/CalculatorButton';
 import useCalculator from '../logic/useCalculator';
@@ -29,7 +30,32 @@ export default function CalculatorScreen() {
     canEvaluate,
   } = useCalculator();
 
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+
+  // Compact mode kicks in on smaller phones / short viewports.
+  const compact = height < 760;
+  const tight = height < 700;
+
+  // Header / typography sizing.
+  const titleSize = tight ? 22 : compact ? 24 : 28;
+  const subtitleSize = tight ? 11 : compact ? 12 : 14;
+  const kickerSize = tight ? 10 : 12;
+  const resultSize = tight ? 34 : compact ? 38 : 44;
+
+  // Spacing
+  const containerPad = tight ? 10 : compact ? 12 : 16;
+  const cardPad = tight ? 10 : compact ? 12 : 14;
+  const cardGap = tight ? 8 : compact ? 10 : 12;
+  const padGap = tight ? 4 : compact ? 6 : 8;
+
+  // Button chrome / header buttons
+  const headerButtonHPad = tight ? 10 : 12;
+  const headerButtonVPad = tight ? 6 : 8;
+
   const [copied, setCopied] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showTheme, setShowTheme] = useState(false);
 
   const expressionPreview = useMemo(() => [...tokens, display].join(' '), [tokens, display]);
 
@@ -98,69 +124,120 @@ export default function CalculatorScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { padding: containerPad }]}> 
       <View style={styles.header}>
-        <View>
-          <Text style={styles.kicker}>Accessible Calculator</Text>
-          <Text style={styles.title}>Signal Calculator</Text>
-          <Text style={styles.subtitle}>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.kicker, { fontSize: kickerSize }]}>Accessible Calculator</Text>
+          <Text style={[styles.title, { fontSize: titleSize }]}>Signal Calculator</Text>
+          <Text style={[styles.subtitle, { fontSize: subtitleSize }]}>
             Keyboard first, screen-reader friendly, with history and memory keys.
           </Text>
         </View>
-        <View style={styles.pill}>
-          <Text style={styles.pillText}>Default Theme</Text>
+
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={showHistory ? 'Hide history' : 'Show history'}
+            onPress={() => setShowHistory((v) => !v)}
+            style={({ pressed }) => [
+              styles.headerButton,
+              { paddingHorizontal: headerButtonHPad, paddingVertical: headerButtonVPad },
+              pressed && styles.headerButtonPressed,
+            ]}
+          >
+            <Text style={styles.headerButtonText}>History</Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={showTheme ? 'Hide theme options' : 'Show theme options'}
+            onPress={() => setShowTheme((v) => !v)}
+            style={({ pressed }) => [
+              styles.headerButton,
+              { paddingHorizontal: headerButtonHPad, paddingVertical: headerButtonVPad },
+              pressed && styles.headerButtonPressed,
+            ]}
+          >
+            <Text style={styles.headerButtonText}>Theme</Text>
+          </Pressable>
         </View>
       </View>
 
-      <View style={styles.content}>
-        <View style={styles.calculatorCard}>
-          <View style={styles.displayCard}>
-            <View style={styles.displayMeta}>
-              <Text style={styles.metaLabel}>≈</Text>
-              <Text style={styles.metaValue} numberOfLines={1} adjustsFontSizeToFit>
-                {expressionPreview || '0'}
-              </Text>
-            </View>
-            <View style={styles.displayRow}>
-              <Text style={styles.result} numberOfLines={1} adjustsFontSizeToFit>
-                {error || display}
-              </Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Copy result" onPress={handleCopy} style={styles.copyPill}>
-                <Text style={styles.copyText}>{copied ? 'Copied' : 'Copy'}</Text>
-              </Pressable>
-            </View>
-            <View style={styles.displayMeta}>
-              <Text style={styles.metaLabel}>Memory</Text>
-              <Text style={styles.metaValue}>{memory == null ? '—' : memory}</Text>
-            </View>
+      <View style={[styles.calculatorCard, { padding: cardPad, gap: cardGap }]}> 
+        <View style={[styles.displayCard, { padding: tight ? 10 : compact ? 12 : 14 }]}>
+          <View style={styles.displayMeta}>
+            <Text style={styles.metaLabel}>≈</Text>
+            <Text style={styles.metaValue} numberOfLines={1} adjustsFontSizeToFit>
+              {expressionPreview || '0'}
+            </Text>
           </View>
 
-          <View style={styles.pad}>
-            {rows.map((row, idx) => (
-              <View key={`row-${idx}`} style={styles.row}>
-                {row}
-              </View>
-            ))}
+          <View style={styles.displayRow}>
+            <Text style={[styles.result, { fontSize: resultSize }]} numberOfLines={1} adjustsFontSizeToFit>
+              {error || display}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Copy result"
+              onPress={handleCopy}
+              style={styles.copyPill}
+            >
+              <Text style={styles.copyText}>{copied ? 'Copied' : 'Copy'}</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.displayMeta}>
+            <Text style={styles.metaLabel}>Memory</Text>
+            <Text style={styles.metaValue}>{memory == null ? '—' : memory}</Text>
           </View>
         </View>
 
-        <View style={styles.historyCard}>
-          <View style={styles.historyHeader}>
-            <Text style={styles.historyTitle}>History</Text>
-            <Text style={styles.historySubtitle}>Last 5 calculations</Text>
-          </View>
-          <ScrollView style={styles.historyList}>
-            {history.length === 0 && <Text style={styles.historyEmpty}>No history yet</Text>}
-            {history.map((item, index) => (
-              <View key={`${item.expression}-${index}`} style={styles.historyItem}>
-                <Text style={styles.historyExpression} numberOfLines={1}>
-                  {index + 1}. {item.expression}
-                </Text>
-                <Text style={styles.historyResult}>= {item.result}</Text>
-              </View>
-            ))}
-          </ScrollView>
+        <View style={[styles.pad, { gap: padGap }]}>
+          {rows.map((row, idx) => (
+            <View key={`row-${idx}`} style={styles.row}>
+              {row}
+            </View>
+          ))}
         </View>
+
+        {showHistory && (
+          <View style={styles.historyCardInline}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>History</Text>
+              <Text style={styles.historySubtitle}>Last 5 calculations</Text>
+            </View>
+
+            <ScrollView
+              style={styles.historyList}
+              contentContainerStyle={styles.historyListContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {history.length === 0 && <Text style={styles.historyEmpty}>No history yet</Text>}
+              {history.map((item, index) => (
+                <View key={`${item.expression}-${index}`} style={styles.historyItem}>
+                  <Text style={styles.historyExpression} numberOfLines={1}>
+                    {index + 1}. {item.expression}
+                  </Text>
+                  <Text style={styles.historyResult}>= {item.result}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {showTheme && (
+          <View style={styles.themeCardInline}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Theme</Text>
+              <Text style={styles.historySubtitle}>Coming soon</Text>
+            </View>
+            <Text style={styles.themeHint}>
+              We’ll add selectable themes here (and persist your choice).
+            </Text>
+          </View>
+        )}
+
+        {(showHistory || showTheme) && <View style={{ height: compact ? 8 : 12 }} />}
       </View>
     </SafeAreaView>
   );
@@ -170,13 +247,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#050816',
-    padding: 16,
-    gap: 16,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  headerLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+  },
+  headerButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#374268',
+    backgroundColor: '#0b1224',
+  },
+  headerButtonPressed: {
+    opacity: 0.85,
+  },
+  headerButtonText: {
+    color: '#cfd4e6',
+    fontSize: 12,
+    fontWeight: '700',
   },
   kicker: {
     color: '#8b95b7',
@@ -187,40 +288,20 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#f5f7fb',
-    fontSize: 28,
     fontWeight: '700',
   },
   subtitle: {
     color: '#cfd4e6',
-    fontSize: 14,
     marginTop: 4,
   },
-  pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#374268',
-    backgroundColor: '#0b1224',
-  },
-  pillText: {
-    color: '#cfd4e6',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    flexDirection: 'column',
-    gap: 16,
-  },
+
   calculatorCard: {
     flex: 1,
     backgroundColor: '#0b1022',
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#232c4a',
-    padding: 14,
-    gap: 12,
+    // padding and gap are injected dynamically for compact mode
   },
   displayCard: {
     backgroundColor: '#0f162b',
@@ -237,7 +318,6 @@ const styles = StyleSheet.create({
   },
   result: {
     color: '#f5f7fb',
-    fontSize: 44,
     fontWeight: '800',
     textAlign: 'right',
     flex: 1,
@@ -274,22 +354,44 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   pad: {
-    gap: 8,
+    flexGrow: 1,
+    justifyContent: 'space-between',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  historyCard: {
+
+  historyCardInline: {
     backgroundColor: '#0b1022',
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#3b2f1a',
-    padding: 14,
-    gap: 12,
-    flexShrink: 0,
-    maxHeight: 220,
+    padding: 12,
+    gap: 8,
+    marginTop: 12,
   },
+  themeCardInline: {
+    backgroundColor: '#0b1022',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#232c4a',
+    padding: 12,
+    gap: 8,
+    marginTop: 12,
+  },
+  themeHint: {
+    color: '#cfd4e6',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  historyList: {
+    maxHeight: 140,
+  },
+  historyListContent: {
+    paddingBottom: 6,
+  },
+
   historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -302,9 +404,6 @@ const styles = StyleSheet.create({
   historySubtitle: {
     color: '#cfd4e6',
     fontSize: 12,
-  },
-  historyList: {
-    maxHeight: 180,
   },
   historyItem: {
     marginBottom: 12,

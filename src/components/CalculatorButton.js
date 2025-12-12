@@ -80,13 +80,15 @@ export default function CalculatorButton({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
+    minWidth: 0,
   },
   button: {
     margin: 6,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 64,
+    aspectRatio: 1,           // keeps square buttons that scale
+    width: '100%',            // fill available column width
     borderWidth: 1,
     shadowColor: '#0b1022',
     shadowOpacity: 0.4,
@@ -95,7 +97,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   label: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
   },
 });
