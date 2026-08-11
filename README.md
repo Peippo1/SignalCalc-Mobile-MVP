@@ -2,9 +2,9 @@
 
 ![SignalCalc hosted webpage](docs/screenshots/signalcalc-webpage-top.png)
 
-![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
 
 See the [SignalCalc showcase site](https://signalcalc-showcase.tim-o-finch.chatgpt.site) for the portfolio presentation and product overview. The deployment is currently owner-only.
+
 
 [![Expo](https://img.shields.io/badge/Expo-54.0-1B1F36?logo=expo&logoColor=white)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=white)](https://reactnative.dev/)
@@ -22,6 +22,8 @@ SignalCalc is a lightweight, keyboard-friendly calculator with memory keys, hist
 - Persists history/memory/ANS across sessions
 - Dark, card-based layout with accent buttons and status pill
 - Built on Expo and React Native with a single calculator entrypoint
+
+![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
 
 ## Project structure
 ```
