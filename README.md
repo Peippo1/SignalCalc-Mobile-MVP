@@ -4,6 +4,8 @@
 
 ![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
 
+![SignalCalc hosted webpage](docs/screenshots/signalcalc-webpage-top.png)
+
 See the [SignalCalc showcase site](https://signalcalc-showcase.tim-o-finch.chatgpt.site) for the portfolio presentation and product overview. The deployment is currently owner-only.
 
 [![Expo](https://img.shields.io/badge/Expo-54.0-1B1F36?logo=expo&logoColor=white)](https://expo.dev)
@@ -75,8 +77,6 @@ The MVP is complete and intentionally narrow: everyday arithmetic, memory, answe
 ## Notes
 - `App.js` is the only app entrypoint and mounts `src/screens/CalculatorScreen`.
 - History, memory, answer recall, and the current entry persist locally through AsyncStorage.
-
-A full documentation site is out of scope for this portfolio MVP.
 
 ## How calculations work
 
