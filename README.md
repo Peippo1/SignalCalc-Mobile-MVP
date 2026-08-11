@@ -6,7 +6,7 @@
 
 ![SignalCalc hosted webpage](docs/screenshots/signalcalc-webpage-top.png)
 
-See the [SignalCalc showcase site](https://signalcalc-showcase.tim-o-finch.chatgpt.site) for the portfolio presentation and product overview. The deployment is currently owner-only.
+Try the [public SignalCalc showcase site](https://signalcalc-showcase.tim-o-finch.chatgpt.site) for the hosted scientific calculator and student toolkit. It is free to use and does not require an account.
 
 [![Expo](https://img.shields.io/badge/Expo-54.0-1B1F36?logo=expo&logoColor=white)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=white)](https://reactnative.dev/)
