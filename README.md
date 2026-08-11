@@ -1,7 +1,5 @@
 # SignalCalc Mobile
 
-![FinchWorks Studio banner](docs/finchworks-banner.png)
-
 ![SignalCalc hosted webpage](docs/screenshots/signalcalc-webpage-top.png)
 
 ![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
