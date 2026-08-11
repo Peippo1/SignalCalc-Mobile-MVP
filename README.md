@@ -2,13 +2,17 @@
 
 ![FinchWorks Studio banner](docs/finchworks-banner.png)
 
+![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
+
+See the [SignalCalc showcase site](https://signalcalc-showcase.tim-o-finch.chatgpt.site) for the portfolio presentation and product overview. The deployment is currently owner-only.
+
 [![Expo](https://img.shields.io/badge/Expo-54.0-1B1F36?logo=expo&logoColor=white)](https://expo.dev)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81-61DAFB?logo=react&logoColor=white)](https://reactnative.dev/)
 [![Platforms](https://img.shields.io/badge/iOS%20%7C%20Android%20%7C%20Web-universal-0b7)](#running)
 [![License](https://img.shields.io/badge/License-MIT-0b7)](#license)
 [![FinchWorks Studio](https://img.shields.io/badge/FinchWorks-Studio-blueviolet?logo=sparkles)](https://github.com/Peippo1)
 
-SignalCalc is a modern, keyboard-friendly calculator with memory keys, history, and accessible UI inspired by the FinchWorks Studio design system.
+SignalCalc is a lightweight, keyboard-friendly calculator with memory keys, history, safe expression parsing, and accessible UI inspired by the FinchWorks Studio design system.
 
 ## Features
 - Memory keys: `MC`, `MR`, `M+`, `M-`, with live memory indicator
@@ -17,20 +21,18 @@ SignalCalc is a modern, keyboard-friendly calculator with memory keys, history, 
 - Long-press backspace to clear entry, haptics on press, copy result to clipboard
 - Persists history/memory/ANS across sessions
 - Dark, card-based layout with accent buttons and status pill
-- Built on Expo Router / React Native with TypeScript-ready setup
+- Built on Expo and React Native with a single calculator entrypoint
 
 ## Project structure
 ```
-App.js                # Entry mounts CalculatorScreen
+App.js                # App root and safe-area provider
 src/
   components/        # CalculatorButton and related UI pieces
-  logic/             # useCalculator hook (state, memory, history)
+  logic/             # useCalculator hook and safe expression evaluator
   screens/           # CalculatorScreen layout
-  theme/             # Theme primitives (expandable)
+__tests__/           # Hook and evaluator behavior tests
 docs/
   finchworks-banner.png
-app/                 # Expo Router starter (unused for MVP)
-components/, hooks/  # Expo template helpers (icons, themed views)
 ```
 
 ## Architecture
@@ -42,7 +44,7 @@ flowchart TD
   Screen --> Logic[useCalculator Hook\nState + Logic]
   Logic --> Mem[Memory System\nMC/MR/M+/M-]
   Logic --> Hist[History System\nLast 5 Calculations]
-  Logic --> Eval[Expression Evaluator\n(numbers, ops, %, sign)]
+  Logic --> Eval[Safe Expression Evaluator\n(numbers, ops, parentheses)]
   Eval --> State[(React State)]
   State --> Screen
   App --> Assets[[Assets\nicons, banner]]
@@ -63,54 +65,18 @@ Then open the QR code (Expo Go), press `i` for iOS simulator, `a` for Android, o
 ## Key scripts
 - `npm start` / `npx expo start` – launch Metro bundler
 - `npm run android` / `npm run ios` / `npm run web` – run on a specific platform
-- `npm run lint` – lint with Expo config
+- `npm run lint` – run ESLint across the active source tree
 
 
-## Roadmap
+## MVP status
 
-### v1.0 – MVP
-- Core calculator logic
-- Memory keys (MC, MR, M+, M-)
-- History of last 5 calculations
-- Ans, %, sign toggle, parentheses
-- Dark theme
-
-### v1.1 – UI & UX polish
-- Haptic feedback
-- Improved animations
-- Theme expansion (light/dark auto mode)
-
-### v1.5 – Feature expansion
-- Full history view
-- Export tape (text / JSON)
-- Custom accent colours
-- Persistence via AsyncStorage
-
-### v2.0 – Pro Tier
-- Unlimited history
-- Scientific mode (sin, cos, tan, log)
-- Advanced operations (√, x², x³, n!)
-- Macro buttons (programmable sequences)
-- Custom themes & premium layouts
-
-See the full [CHANGELOG](CHANGELOG.md) for version tracking.
-
-## Pro Tier (Planned)
-
-SignalCalc Mobile Pro will introduce advanced tooling for power‑users:
-
-- Unlimited memory & history
-- Export and share calculation tape
-- Advanced scientific operations
-- Macro system for quick programmable sequences
-- FinchWorks premium themes
-- Early access to feature updates
+The MVP is complete and intentionally narrow: everyday arithmetic, memory, answer recall, local history, persistence, clipboard copy, haptics, accessibility labels, and iOS/Android/web support. There is no hosted backend, API key, analytics, or CI workflow to maintain.
 
 ## Notes
-- Entry point is `App.js`, which mounts `src/screens/CalculatorScreen`. The Expo Router starter in `app/` can be removed if unused.
-- History and memory are kept in-memory; persistence can be added via async storage if needed.
+- `App.js` is the only app entrypoint and mounts `src/screens/CalculatorScreen`.
+- History, memory, answer recall, and the current entry persist locally through AsyncStorage.
 
-A full documentation site will be available soon via GitHub Pages or Docusaurus, including API details, design system specs, and Pro tier feature docs.
+A full documentation site is out of scope for this portfolio MVP.
 
 ## How calculations work
 
@@ -121,15 +87,15 @@ The calculator uses a custom `useCalculator` hook which manages:
 - Sanitisation prevents invalid sequences (e.g., `*/`, `..`, unmatched parentheses)
 
 ### Evaluation pipeline
-1. Expression string prepared for JS `eval()`-safe processing  
-2. Percent operations converted to fractional multipliers  
-3. Memory and Ans tokens resolved  
-4. Safe evaluation returns a numeric result or an error flag
+1. Button state produces a small token expression.
+2. A local tokenizer and shunting-yard parser apply precedence and parentheses.
+3. Division by zero, malformed input, unsafe characters, and non-finite results return a recoverable error.
+4. Successful results are formatted for display and added to the five-item history.
 
 ### History & memory
 - History stores the last 5 successful calculations  
 - Memory stores a single running number, updated via MC/MR/M+/M-  
-- Both are kept in React state (future versions may persist them)
+- History and memory are persisted locally and restored on launch.
 
 ## License
 MIT — see the full [LICENSE](LICENSE) file for details.

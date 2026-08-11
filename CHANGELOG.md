@@ -1,48 +1,24 @@
-
-
 # Changelog
-All notable changes to **SignalCalc Mobile** will be documented in this file.
 
-This project follows [Semantic Versioning](https://semver.org/) and the structure suggested by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+All notable changes to SignalCalc Mobile are documented here.
 
----
-
-## [Unreleased]
+## [1.0.0] – 2026-08-11
 
 ### Added
-- Initial CHANGELOG.md structure.
-- Roadmap and Pro Tier documentation.
-- Architecture section with Mermaid diagram.
-- Updated README with FinchWorks branding, badges, and technical explanation.
-- Core calculator functionality (App.js, CalculatorScreen, CalculatorButton, useCalculator).
-- Memory system (MC, MR, M+, M-).
-- History system tracking last 5 calculations.
-- Dark theme support.
+
+- Safe local expression parser with precedence, parentheses, unary negatives, and division-by-zero handling.
+- Memory keys, answer recall, five-item history, persistence, clipboard copy, and haptics.
+- Responsive React Native UI with accessibility labels and 44pt touch targets.
+- Unit coverage for evaluator edge cases and calculator behavior.
 
 ### Changed
-- Cleaned and reorganised repository structure.
-- Removed legacy nested project folder.
-- Improved documentation layout and structure.
+
+- Removed unused Expo Router routes, template components, and unnecessary direct dependencies.
+- Configured the app as a single Expo entrypoint with a single web export.
+- Limited Dependabot to monthly checks with no routine pull requests.
 
 ### Fixed
-- Filepath issues caused by nested folders.
-- Incorrect banner image path for README.
 
----
-
-## [1.0.0] – First MVP Release (Planned)
-### Added
-- Full basic calculator functions.
-- Memory operations.
-- History preview.
-- Ans, %, and sign toggle.
-- React Native layout and styling.
-- Expo project scaffold.
-
----
-
-## [Future Versions]
-- Export history (v1.5)
-- Full scientific mode (v2.0)
-- Macro buttons & advanced features (v2.0 Pro)
-- Full documentation site (v2.x)
+- Replaced dynamic code execution with a safe parser.
+- Fixed stale Expo Router/static route wiring.
+- Removed placeholder copy and theme behavior.
