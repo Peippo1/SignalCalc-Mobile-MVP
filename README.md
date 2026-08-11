@@ -2,9 +2,9 @@
 
 ![FinchWorks Studio banner](docs/finchworks-banner.png)
 
-![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
-
 ![SignalCalc hosted webpage](docs/screenshots/signalcalc-webpage-top.png)
+
+![SignalCalc scientific calculator](docs/screenshots/signalcalc-live.png)
 
 See the [SignalCalc showcase site](https://signalcalc-showcase.tim-o-finch.chatgpt.site) for the portfolio presentation and product overview. The deployment is currently owner-only.
 
